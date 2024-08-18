@@ -32,6 +32,7 @@ We have two main folders in the project:
 
 - `devices`: Contains the code for the devices supported by the project.
 - `application_server`: Contains the code for the relay server that forwards the messages to the devices.
+- `docs`: Contains documentation and images
 
 ## Status
 
