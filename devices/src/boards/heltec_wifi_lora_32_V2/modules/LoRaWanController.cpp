@@ -51,7 +51,7 @@ LoRaMacRegion_t loraWanRegion = LORAMAC_REGION_US915;
 
 // Device class, choose A here for compatibility reasons
 // Remember... Class A only opens a RX window after a TX window!!!
-DeviceClass_t  loraWanClass = CLASS_A;
+DeviceClass_t  loraWanClass = CLASS_C;
 
 //the application data transmission duty cycle.  value in [ms].
 //this is needed for the current LoRa stack from Heltec... they made things to run on a fixed state machine with
@@ -125,6 +125,13 @@ void LoRaWanController::sendDummyMessage() {
     LoRaWAN.send();
 }
 
+void LoRaWanController::prepareSendData(String message, int size) {
+    appDataSize = size;
+    for (int i = 0; i < size; i++) {
+        appData[i] = message[i];
+    }
+}
+
 eDeviceState_LoraWan LoRaWanController::loRaWANStateMachine() {
     switch( deviceState ) {
         case DEVICE_STATE_INIT:
@@ -144,15 +151,18 @@ eDeviceState_LoraWan LoRaWanController::loRaWANStateMachine() {
         case DEVICE_STATE_SEND:
         {
             //Dummy TX packet
-            appDataSize = 4;
+            /*appDataSize = 4;
             appData[0] = 0x00;
             appData[1] = 0x01;
             appData[2] = 0x02;
-            appData[3] = 0x03;
+            appData[3] = 0x03;*/
 
-            //send addData message
-            LoRaWAN.send();
+            //send appData message
+            if (appDataSize > 0) {
+                LoRaWAN.send();
+            }
 
+            appDataSize = 0;
             deviceState = DEVICE_STATE_CYCLE;
             Serial.println("Sending TX...");
             break;

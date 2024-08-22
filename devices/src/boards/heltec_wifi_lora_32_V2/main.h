@@ -7,6 +7,7 @@
 
 static void prepareTxFrame( uint8_t port );
 void displayPrintLn(String text);
+void generateMessageScreen();
 
 int16_t linePos = 0;
 
