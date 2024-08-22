@@ -20,6 +20,8 @@ void setup()
     displayController.begin();
     loRaWanController.begin(devEUI, joinEUI, appKEY, NwkKEY);
 
+
+
     Serial.println(F("Ready!\n"));
 
 }

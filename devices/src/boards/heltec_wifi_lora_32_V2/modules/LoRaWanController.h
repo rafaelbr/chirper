@@ -6,10 +6,8 @@
 * Because of implementation of Heltec ESP32 Library, we will stick to LoRaWAN MAC 1.0.3, I need fo figure
 * out how to implement 1.1 stack using this library (manage nonces and session persistence)
 *
-* The Heltec LoRa library implements Class A,B and C, but we will stick to Class A for now to be
-* retrocompatible with other boards and libraries.
-* Because of this, we will manage a single TX every time window (maybe 30s) to open a RX window and update
-* available devices and messages for the current device.
+* The Heltec LoRa library implements Class A, B and C. Because Class A goes to deep sleep after the second RX window,
+* we are using Class C to keep the device awake and listening for messages.
 *
 * This class is only compatible with Heltec ESP32 LoRa boards.
 *************/
@@ -37,6 +35,7 @@ class LoRaWanController {
 
         void begin();
         void sendDummyMessage();
+        void prepareSendData(String message, int size);
 
      private:
         uint8_t* (*txFunction)(void);
