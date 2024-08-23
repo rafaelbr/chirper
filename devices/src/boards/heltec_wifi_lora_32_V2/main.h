@@ -9,6 +9,26 @@ static void prepareTxFrame( uint8_t port );
 void displayPrintLn(String text);
 void generateMessageScreen();
 
-int16_t linePos = 0;
+
+/******* LoRaWAN Parameters *******/
+/* OTAA parameters */
+
+uint8_t devEUI[] = { DEVICE_HELTEC_WIFI_LORA_32_V2_0001_DEVEUI };
+uint8_t appEUI[] = { DEVICE_HELTEC_WIFI_LORA_32_V2_0001_JOINEUI };
+uint8_t appKEY[] = { DEVICE_HELTEC_WIFI_LORA_32_V2_0001_APPKEY };
+
+
+LoRaWanController loraWanController(devEUI, appEUI, appKEY);
+DisplayController displayController;
+KeyboardController keyboardController;
+
+int currentInput = 0;
+int currentInputStartLine[] = {13, 40};
+int currentInputEndLine[] = {25, 64};
+
+bool isLoRaJoined = false;
+
+String deviceIdInput = "";
+String messageInput = "";
 
 #endif //MAIN_H

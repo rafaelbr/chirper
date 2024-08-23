@@ -5,27 +5,6 @@
 #include "devices.h"
 #include "main.h"
 
-/******* LoRaWAN Parameters *******/
-/* OTAA parameters */
-
-uint8_t devEUI[] = { DEVICE_HELTEC_WIFI_LORA_32_V2_0001_DEVEUI };
-uint8_t appEUI[] = { DEVICE_HELTEC_WIFI_LORA_32_V2_0001_JOINEUI };
-uint8_t appKEY[] = { DEVICE_HELTEC_WIFI_LORA_32_V2_0001_APPKEY };
-
-
-LoRaWanController loraWanController(devEUI, appEUI, appKEY);
-DisplayController displayController;
-KeyboardController keyboardController;
-
-int currentInput = 0;
-int currentInputStartLine[] = {10, 40};
-int currentInputEndLine[] = {20, 60};
-
-bool isLoRaJoined = false;
-
-String deviceIdInput = "";
-String messageInput = "";
-
 //downlink data handle
 //heltec lorawan stack has an extern linkage for downlink handle... so it needs to stay on sketch
 //figuring out how to manage this...
@@ -48,9 +27,9 @@ void upFunction() {
         currentInput = 0;
     }
     else {
-        displayController.clearInputKb(currentInputStartLine[currentInput], 0, currentInputEndLine[currentInput], 100);
+        displayController.clearInputKb(currentInputStartLine[currentInput], 0, currentInputEndLine[currentInput], HELTEC_DISPLAY_MAXCHARS);
     }
-    displayController.setupInputKb(currentInputStartLine[currentInput], 0, currentInputEndLine[currentInput], 100);
+    displayController.setupInputKb(currentInputStartLine[currentInput], 0, currentInputEndLine[currentInput], HELTEC_DISPLAY_MAXCHARS);
 }
 
 void downFunction() {
@@ -59,9 +38,9 @@ void downFunction() {
         currentInput = 1;
     }
     else {
-        displayController.clearInputKb(currentInputStartLine[currentInput], 0, currentInputEndLine[currentInput], 100);
+        displayController.clearInputKb(currentInputStartLine[currentInput], 0, currentInputEndLine[currentInput], HELTEC_DISPLAY_MAXCHARS);
     }
-    displayController.setupInputKb(currentInputStartLine[currentInput], 0, currentInputEndLine[currentInput], 100);
+    displayController.setupInputKb(currentInputStartLine[currentInput], 0, currentInputEndLine[currentInput], HELTEC_DISPLAY_MAXCHARS);
 }
 
 void leftFunction() {
@@ -73,7 +52,8 @@ void rightFunction() {
 }
 
 void enterFunction() {
-    loraWanController.prepareSendData(messageInput, messageInput.length());
+    String input = displayController.getInputBuffer();
+    loraWanController.prepareSendData(input, input.length());
     displayController.clear();
     displayController.setTextCursor(0, 0);
     displayController.println("Sending...");
@@ -90,9 +70,9 @@ void generateMessageScreen() {
     displayController.clear();
     displayController.setTextCursor(0, 0);
     displayController.println("To Device: ");
-    displayController.setTextCursor(30, 0);
+    displayController.setTextCursor(27, 0);
     displayController.println("Message: ");
-    displayController.setupInputKb(10, 0, 30, 100);
+    displayController.setupInputKb(currentInputStartLine[currentInput], 0, currentInputEndLine[currentInput], HELTEC_DISPLAY_MAXCHARS);
 }
 
 void setup() {
@@ -138,12 +118,6 @@ void loop() {
 
     char c = keyboardController.readKey();
     if (c != 0) {
-        //Serial.println(c, HEX);
-        if (currentInput == 0) {
-            deviceIdInput += c;
-        } else {
-            messageInput += c;
-        }
         displayController.printCharSequence(c);
     }
 }

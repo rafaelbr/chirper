@@ -160,11 +160,11 @@ eDeviceState_LoraWan LoRaWanController::loRaWANStateMachine() {
             //send appData message
             if (appDataSize > 0) {
                 LoRaWAN.send();
+                Serial.println("Sending TX...");
             }
 
             appDataSize = 0;
             deviceState = DEVICE_STATE_CYCLE;
-            Serial.println("Sending TX...");
             break;
         }
         case DEVICE_STATE_CYCLE:
