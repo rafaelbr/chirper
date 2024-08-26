@@ -113,17 +113,6 @@ void LoRaWanController::begin() {
     Mcu.begin(HELTEC_BOARD,SLOW_CLK_TPYE);
 }
 
-void LoRaWanController::sendDummyMessage() {
-    //Dummy TX packet
-    appDataSize = 4;
-    appData[0] = 0x00;
-    appData[1] = 0x01;
-    appData[2] = 0x02;
-    appData[3] = 0x03;
-
-    //send addData message
-    LoRaWAN.send();
-}
 
 void LoRaWanController::prepareSendData(String message, int size) {
     appDataSize = size;

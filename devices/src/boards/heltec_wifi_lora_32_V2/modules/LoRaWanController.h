@@ -22,23 +22,23 @@
 #include "LoRaWan_APP.h"
 
 class LoRaWanController {
-    public:
-        LoRaWanController(uint8_t DevEUI[], uint8_t JoinEUI[], uint8_t AppKey[]);
-        ~LoRaWanController();
+public:
+    LoRaWanController(uint8_t DevEUI[], uint8_t JoinEUI[], uint8_t AppKey[]);
+    ~LoRaWanController();
 
 
-        /*
-         * Heltec LoRaWAN stack is implemented as a state machine
-         * variable deviceState is updated every frame loop, so we need to control this here
-         */
-        eDeviceState_LoraWan loRaWANStateMachine();
+    /*
+     * Heltec LoRaWAN stack is implemented as a state machine
+     * variable deviceState is updated every frame loop, so we need to control this here
+     */
+    eDeviceState_LoraWan loRaWANStateMachine();
 
-        void begin();
-        void sendDummyMessage();
-        void prepareSendData(String message, int size);
+    void begin();
 
-     private:
-        uint8_t* (*txFunction)(void);
+    void prepareSendData(String message, int size);
+
+private:
+
 
 };
 

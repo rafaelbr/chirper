@@ -1,8 +1,4 @@
 #include <Arduino.h>
-#include "modules/LoRaWanController.h"
-#include "modules/DisplayController.h"
-#include "modules/KeyboardController.h"
-#include "devices.h"
 #include "main.h"
 
 //downlink data handle
@@ -75,11 +71,35 @@ void generateMessageScreen() {
     displayController.setupInputKb(currentInputStartLine[currentInput], 0, currentInputEndLine[currentInput], HELTEC_DISPLAY_MAXCHARS);
 }
 
+/********** Tasks **************/
+// We are using FreeRTOS to manage tasks
+void loraWanTask(void *pvParameters) {
+    while (true) {
+        auto state = loraWanController.loRaWANStateMachine();
+
+
+        if (state == DEVICE_STATE_JOIN) {
+            displayController.println("LoRAWan Joining...");
+            continue;
+        }
+
+        if (state == DEVICE_STATE_SEND && !isLoRaJoined) {
+            displayController.println("Joined network!!!");
+            displayController.println("Initializing UI...");
+            isLoRaJoined = true;
+            continue;
+        }
+        vTaskDelay( pdMS_TO_TICKS( 10u ) );
+    }
+}
+
 void setup() {
 
     //initialize peripherals
+    //boardController.begin(); //need to be first - initializes board
     displayController.begin();
     loraWanController.begin();
+    //sdCardController.begin();
     // this is needed to wait for I2C to be ready again after display initialization
     delay(100);
 
@@ -92,29 +112,22 @@ void setup() {
     displayController.println("Device ready!");
     displayController.println("Starting up system...");
 
-    //LoRaWAN stack initialization and joining... because of state machine on Heltec stack, we pass the handle to loop function
-    //and finish initialization
-    //....
+    xTaskCreate(
+        loraWanTask,
+        "LoRaWAN StateMachine",
+        4096,
+        NULL,
+        1,
+        NULL
+        );
 
 
 }
 
 void loop() {
-    auto state = loraWanController.loRaWANStateMachine();
+    /*auto state = loraWanController.loRaWANStateMachine();
 
-    if (state == DEVICE_STATE_JOIN) {
-        displayController.println("LoRAWan Joining...");
-        return;
-    }
-
-    if (state == DEVICE_STATE_SEND && !isLoRaJoined) {
-        displayController.println("Joined network!!!");
-        displayController.println("Initializing UI...");
-        isLoRaJoined = true;
-        delay(1000);
-        generateMessageScreen();
-        return;
-    }
+    */
 
     char c = keyboardController.readKey();
     if (c != 0) {
