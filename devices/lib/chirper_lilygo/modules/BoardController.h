@@ -14,7 +14,6 @@
 #include <Arduino.h>
 #include "../utils/utilities.h"
 
-
 class BoardController {
 
 public:

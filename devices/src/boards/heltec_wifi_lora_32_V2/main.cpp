@@ -1,8 +1,4 @@
 #include <Arduino.h>
-#include "modules/LoRaWanController.h"
-#include "modules/DisplayController.h"
-#include "modules/KeyboardController.h"
-#include "devices.h"
 #include "main.h"
 
 //downlink data handle
@@ -76,7 +72,7 @@ void generateMessageScreen() {
 }
 
 void setup() {
-
+    boardController.begin();
     //initialize peripherals
     displayController.begin();
     loraWanController.begin();

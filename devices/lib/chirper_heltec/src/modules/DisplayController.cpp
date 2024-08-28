@@ -27,8 +27,6 @@ DisplayController::~DisplayController() {
 }
 
 void DisplayController::begin() {
-    //enable heltec stack but only display
-    Heltec.begin(true, false);
 
 }
 

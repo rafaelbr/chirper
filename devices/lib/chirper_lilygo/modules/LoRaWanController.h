@@ -19,6 +19,8 @@
 #include <RadioLib.h>
 #include <Preferences.h>
 
+#define RADIO_FREQ 915.0
+
 class LoRaWanController {
 
 public:

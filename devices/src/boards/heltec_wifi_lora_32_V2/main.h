@@ -5,6 +5,13 @@
 #ifndef MAIN_H
 #define MAIN_H
 
+#include <modules/BoardController.h>
+
+#include "modules/LoRaWanController.h"
+#include "modules/DisplayController.h"
+#include "modules/KeyboardController.h"
+#include "devices.h"
+
 static void prepareTxFrame( uint8_t port );
 void displayPrintLn(String text);
 void generateMessageScreen();
@@ -18,6 +25,7 @@ uint8_t appEUI[] = { DEVICE_HELTEC_WIFI_LORA_32_V2_0001_JOINEUI };
 uint8_t appKEY[] = { DEVICE_HELTEC_WIFI_LORA_32_V2_0001_APPKEY };
 
 
+BoardController boardController;
 LoRaWanController loraWanController(devEUI, appEUI, appKEY);
 DisplayController displayController;
 KeyboardController keyboardController;

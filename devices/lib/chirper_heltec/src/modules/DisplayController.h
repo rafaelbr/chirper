@@ -17,7 +17,6 @@
 
 #include "heltec.h"
 
-
 class DisplayController {
 
 public:

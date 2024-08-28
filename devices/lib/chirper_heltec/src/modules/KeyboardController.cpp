@@ -14,6 +14,8 @@ KeyboardController::~KeyboardController() {
 }
 
 void KeyboardController::begin() {
+  //make a initial read on I2C to clear the buffer
+  Wire.requestFrom(CARDKB_ADDR, 1);
 
 }
 
