@@ -7,6 +7,8 @@
 #include "modules/BoardController.h"
 #include "modules/KeyboardController.h"
 
+#define TEST_TIME 5000
+
 BoardController boardController;
 KeyboardController keyboardController;
 
@@ -30,7 +32,7 @@ void test_readKey() {
     Serial.println("Press A key in two seconds...");
     char key = 0;
     int time = 0;
-    while (key == 0 && time < 2000) {
+    while (key == 0 && time < TEST_TIME) {
         key = keyboardController.readKey();
         delay(100);
         time+=100;
