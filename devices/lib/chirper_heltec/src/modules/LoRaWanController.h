@@ -35,7 +35,7 @@ class LoRaWanController {
 
         void begin();
         void sendDummyMessage();
-        void prepareSendData(String message, int size);
+        void prepareSendData(String message);
 
      private:
         uint8_t* (*txFunction)(void);

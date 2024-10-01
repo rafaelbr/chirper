@@ -6,6 +6,10 @@
 *
 * Uses default Heltec initialization mechanism only for display
 *************/
+#include <HT_SSD1306Wire.h>
+#include "HT_DisplayUi.h"
+#include "modules/KeyboardController.h"
+
 
 #ifndef DISPLAYCONTROLLER_H
 #define DISPLAYCONTROLLER_H
@@ -15,7 +19,38 @@
 
 #define HELTEC_DISPLAY_LINEHEIGHT 12
 
-#include "heltec.h"
+const uint8_t activeSymbol[] PROGMEM = {
+    0B00000000,
+    0B00000000,
+    0B00011000,
+    0B00100100,
+    0B01000010,
+    0B01000010,
+    0B00100100,
+    0B00011000
+};
+
+const uint8_t inactiveSymbol[] PROGMEM = {
+    0B00000000,
+    0B00000000,
+    0B00000000,
+    0B00000000,
+    0B00011000,
+    0B00011000,
+    0B00000000,
+    0B00000000
+};
+
+struct InputConfig {
+    String label;
+    int startLinePos;
+    int maxLines;
+    const uint8_t *fontData;
+    bool shouldClearBuffer;
+    bool isActive;
+    String buffer;
+};
+
 
 class DisplayController {
 
@@ -26,6 +61,8 @@ public:
 
     /* Initialize display */
     void begin();
+
+    /**** Display Functions ****/
 
     /* Print text line to display */
     void println(String text);
@@ -48,7 +85,52 @@ public:
     /* Clear display */
     void clear();
 
+    /* Draw image on display */
+    void drawImage(int x, int y, int w, int h, const uint8_t *data);
+
+    /****** UI Functions ******/
+
+    /* Configure UI parameters for screen flow*/
+    void configureUI();
+
+    /* Gets the display object */
+    ScreenDisplay* getDisplay();
+
+    /* Sets frame functions to be displayed */
+    void setFrames(FrameCallback* frames, int frameCount);
+
+    /* Sets overlay functions to be displayed */
+    void setOverlays(OverlayCallback* overlays, int overlayCount);
+
+    void showFrame(int frameIndex);
+
+    int getCurrentFrame() const {
+        return currentFrame;
+    }
+
+    bool getFrameInitialization() {
+        return frameInitialized;
+    }
+
+    void setFrameInitilized();
+
+    int addInputConfig(String label, int startLinePos, int maxLines, const uint8_t *fontData, bool shouldClearBuffer);
+
+    InputConfig getInputConfig(int index);
+
+    void updateInput(int inputConfigIndex, KeyboardController* kbController);
+
+    void setInputActive(int inputConfigIndex);
+
+    int16_t updateUI();
+
 private:
+
+    String inputBuffer;
+    int inputBufferIndex = 0;
+    int currentFrame;
+
+    /**** non UI control parameters ****/
     int linePos = 0;
     int charPos = 0;
 
@@ -58,16 +140,20 @@ private:
     int inputEndLine = 0;
     int inputEndCol = 0;
 
-    //current input buffer
-    char inputBuffer[255] = {0};
-    //current input buffer index - points to the last char in the buffer
-    int inputBufferIndex;
+    InputConfig inputConfigs[255];
+    int inputConfigsCount = 0;
+
+    SSD1306Wire*  display;
+    DisplayUi* ui;
+
+    bool frameInitialized = false;
 
     void printInputCursor();
     void clearCurrentChar();
     void addCharToBuffer(char c);
     void removeLastCharFromBuffer();
 
+    void getFontHeight(uint8_t fontData);
 
 };
 

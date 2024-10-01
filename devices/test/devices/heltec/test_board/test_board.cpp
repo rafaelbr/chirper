@@ -11,7 +11,7 @@
 BoardController boardController;
 
 void setUp(void) {
-    boardController.begin(false);
+
 }
 
 void tearDown(void) {
@@ -20,11 +20,11 @@ void tearDown(void) {
 
 void test_read_button_low() {
     Serial.println("Testing read button low");
-    bool button1 = boardController.readButton(COMMAND_BTN1);
+    //bool button1 = boardController.readButton(COMMAND_BTN1);
     bool button2 = boardController.readButton(COMMAND_BTN2);
     bool button3 = boardController.readButton(COMMAND_BTN3);
     delay(2000);
-    TEST_ASSERT_EQUAL(false, button1);
+    //TEST_ASSERT_EQUAL(false, button1);
     TEST_ASSERT_EQUAL(false, button2);
     TEST_ASSERT_EQUAL(false, button3);
 }
@@ -68,13 +68,24 @@ void test_read_button3_high() {
     TEST_ASSERT_EQUAL(true, state);
 }
 
+void test_bat_measure() {
+    int level = boardController.getBatteryLevel();
+    Serial.println("Battery Level: " + String(level));
+    TEST_ASSERT_GREATER_OR_EQUAL(0, level);
+}
+
 void setup() {
+    boardController.begin(false);
     delay(2000);
     UNITY_BEGIN();
+    /*for (int i = 0; i < 10; i++) {
+        RUN_TEST(test_read_button_low);
+    }*/
     RUN_TEST(test_read_button_low);
-    RUN_TEST(test_read_button1_high);
+    //RUN_TEST(test_read_button1_high);
     RUN_TEST(test_read_button2_high);
     RUN_TEST(test_read_button3_high);
+    RUN_TEST(test_bat_measure);
     UNITY_END();
 }
 

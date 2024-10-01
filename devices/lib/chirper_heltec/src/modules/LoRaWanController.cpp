@@ -125,11 +125,11 @@ void LoRaWanController::sendDummyMessage() {
     LoRaWAN.send();
 }
 
-void LoRaWanController::prepareSendData(String message, int size) {
-    appDataSize = size;
-    for (int i = 0; i < size; i++) {
+void LoRaWanController::prepareSendData(String message) {
+    for (int i = 0; i < message.length(); i++) {
         appData[i] = message[i];
     }
+    appDataSize = message.length();
 }
 
 eDeviceState_LoraWan LoRaWanController::loRaWANStateMachine() {

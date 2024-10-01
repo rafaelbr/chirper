@@ -6,10 +6,11 @@
 #define MAIN_H
 
 #include <modules/BoardController.h>
-
-#include "modules/LoRaWanController.h"
-#include "modules/DisplayController.h"
-#include "modules/KeyboardController.h"
+#include <modules/LoRaWanController.h>
+#include <modules/KeyboardController.h>
+#include <modules/DisplayController.h>
+#include "ui/images.h"
+#include "ui/app_frames.h"
 #include "devices.h"
 
 static void prepareTxFrame( uint8_t port );
@@ -20,23 +21,28 @@ void generateMessageScreen();
 /******* LoRaWAN Parameters *******/
 /* OTAA parameters */
 
-uint8_t devEUI[] = { DEVICE_HELTEC_WIFI_LORA_32_V2_0001_DEVEUI };
-uint8_t appEUI[] = { DEVICE_HELTEC_WIFI_LORA_32_V2_0001_JOINEUI };
-uint8_t appKEY[] = { DEVICE_HELTEC_WIFI_LORA_32_V2_0001_APPKEY };
+static uint8_t devEUI[] = { DEVICE_HELTEC_WIFI_LORA_32_V2_0001_DEVEUI };
+static uint8_t appEUI[] = { DEVICE_HELTEC_WIFI_LORA_32_V2_0001_JOINEUI };
+static uint8_t appKEY[] = { DEVICE_HELTEC_WIFI_LORA_32_V2_0001_APPKEY };
 
 
-BoardController boardController;
-LoRaWanController loraWanController(devEUI, appEUI, appKEY);
-DisplayController displayController;
-KeyboardController keyboardController;
+static BoardController boardController;
+static DisplayController displayController;
+static LoRaWanController loraWanController(devEUI, appEUI, appKEY);
+static KeyboardController keyboardController;
 
-int currentInput = 0;
-int currentInputStartLine[] = {13, 40};
-int currentInputEndLine[] = {25, 64};
 
-bool isLoRaJoined = false;
+static bool isLoRaJoined = false;
 
-String deviceIdInput = "";
-String messageInput = "";
+static String deviceIdInput = "";
+static String messageInput = "";
+
+static TaskHandle_t* setupTaskHandle;
+static TaskHandle_t* loraTaskHandle;
+static TaskHandle_t* keyboardTaskHandle;
+
+static SemaphoreHandle_t loraSemaphore;
+
+
 
 #endif //MAIN_H

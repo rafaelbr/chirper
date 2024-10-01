@@ -39,6 +39,18 @@ char KeyboardController::readKey() {
   return c;
 }
 
+void KeyboardController::readCharAndWriteToBuffer() {
+  char c = readKey();
+  if (c != 0) {
+    if (c == 0x08) {
+      inputBuffer.remove(inputBuffer.length()-1);
+      return;
+    }
+    inputBuffer += c;
+    //Serial.println("Input buffer: " + inputBuffer + " Size: " + inputBuffer.length());
+  }
+}
+
 bool KeyboardController::executeAction(char actionCode) {
   switch (actionCode) {
     case 0xB4:
@@ -57,7 +69,7 @@ bool KeyboardController::executeAction(char actionCode) {
       //down
       downFunction();
       return true;
-    case 0xA3:
+    case 0x0D:
       //enter
       enterFunction();
       return true;

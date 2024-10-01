@@ -13,6 +13,8 @@
 #ifndef KEYBOARDCONTROLLER_H
 #define KEYBOARDCONTROLLER_H
 
+#include <Arduino.h>
+
 class KeyboardController {
 
 public:
@@ -22,8 +24,22 @@ public:
   void begin();
   void setFunctions(void (*up)(), void (*down)(), void (*left)(), void (*right)(), void (*enter)());
   char readKey();
+  void readCharAndWriteToBuffer();
+  void adjustBuffer(String newBuffer) {
+    inputBuffer = newBuffer;
+  }
+
+  String getInputBuffer() {
+    return inputBuffer;
+  }
+
+  void clearBuffer() {
+    inputBuffer = "";
+  }
 
 private:
+
+  String inputBuffer = "";
 
   bool executeAction(char actionCode);
 

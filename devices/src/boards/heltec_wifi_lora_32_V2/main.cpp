@@ -1,81 +1,20 @@
 #include <Arduino.h>
 #include "main.h"
 
-//downlink data handle
-//heltec lorawan stack has an extern linkage for downlink handle... so it needs to stay on sketch
-//figuring out how to manage this...
-void downLinkDataHandle(McpsIndication_t *mcpsIndication)
+
+/****** TASKS ******/
+
+//Initialization task
+void initializeTask(void *pvParameters)
 {
-    Serial.printf("+REV DATA:%s,RXSIZE %d,PORT %d\r\n",mcpsIndication->RxSlot?"RXWIN2":"RXWIN1",mcpsIndication->BufferSize,mcpsIndication->Port);
-    Serial.print("+REV DATA:");
-    for(uint8_t i=0;i<mcpsIndication->BufferSize;i++)
-    {
-        Serial.printf("%02X",mcpsIndication->Buffer[i]);
-    }
-    Serial.println();
-}
+    xSemaphoreTake(loraSemaphore, portMAX_DELAY);
+    displayController.showFrame(INIT_LOGO);
+    delay(2000);
 
-/********** Keyboard Action Functions **************/
+    displayController.showFrame(INIT_SCREEN);
+    //delay(1000);
+    addInitMessage("Starting up system...");
 
-void upFunction() {
-    currentInput--;
-    if (currentInput < 0) {
-        currentInput = 0;
-    }
-    else {
-        displayController.clearInputKb(currentInputStartLine[currentInput], 0, currentInputEndLine[currentInput], HELTEC_DISPLAY_MAXCHARS);
-    }
-    displayController.setupInputKb(currentInputStartLine[currentInput], 0, currentInputEndLine[currentInput], HELTEC_DISPLAY_MAXCHARS);
-}
-
-void downFunction() {
-    currentInput++;
-    if (currentInput > 1) {
-        currentInput = 1;
-    }
-    else {
-        displayController.clearInputKb(currentInputStartLine[currentInput], 0, currentInputEndLine[currentInput], HELTEC_DISPLAY_MAXCHARS);
-    }
-    displayController.setupInputKb(currentInputStartLine[currentInput], 0, currentInputEndLine[currentInput], HELTEC_DISPLAY_MAXCHARS);
-}
-
-void leftFunction() {
-
-}
-
-void rightFunction() {
-
-}
-
-void enterFunction() {
-    String input = displayController.getInputBuffer();
-    loraWanController.prepareSendData(input, input.length());
-    displayController.clear();
-    displayController.setTextCursor(0, 0);
-    displayController.println("Sending...");
-    delay(5000);
-    generateMessageScreen();
-
-}
-
-/********** Screen Creation **************/
-// We decided to make a textual UI for this device because the size of screen
-// So we are controlling all just with a label and input field
-// DisplayController has some methods to handle this
-void generateMessageScreen() {
-    displayController.clear();
-    displayController.setTextCursor(0, 0);
-    displayController.println("To Device: ");
-    displayController.setTextCursor(27, 0);
-    displayController.println("Message: ");
-    displayController.setupInputKb(currentInputStartLine[currentInput], 0, currentInputEndLine[currentInput], HELTEC_DISPLAY_MAXCHARS);
-}
-
-void setup() {
-    boardController.begin();
-    //initialize peripherals
-    displayController.begin();
-    loraWanController.begin();
     // this is needed to wait for I2C to be ready again after display initialization
     delay(100);
 
@@ -83,37 +22,95 @@ void setup() {
     keyboardController.begin();
     keyboardController.setFunctions(upFunction, downFunction, leftFunction, rightFunction, enterFunction);
 
-    //Starting up system....
-    displayController.clear();
-    displayController.println("Device ready!");
-    displayController.println("Starting up system...");
+    delay(1000);
 
-    //LoRaWAN stack initialization and joining... because of state machine on Heltec stack, we pass the handle to loop function
-    //and finish initialization
-    //....
+    xSemaphoreGive(loraSemaphore);
+    vTaskDelete(NULL);
+}
+
+//LoRaWAN State Machine Task
+void loraStateTask(void *pvParameters) {
+    loraWanController.begin();
+    xSemaphoreTake(loraSemaphore, portMAX_DELAY);
+    while(1) {
+
+        auto state = loraWanController.loRaWANStateMachine();
+
+        if (state == DEVICE_STATE_JOIN) {
+            addInitMessage("LoRAWan Joining...");
+            continue;
+        }
+
+        if (state == DEVICE_STATE_SEND) {
+            if (!isLoRaJoined) {
+                addInitMessage("Joined network!!!");
+                addInitMessage("Initializing UI...");
+                isLoRaJoined = true;
+                delay(1000);
+                displayController.showFrame(MESSAGE_SCREEN);
+                continue;
+            }
+        }
+        vTaskDelay(1);
+    }
+    xSemaphoreGive(loraSemaphore);
+}
+
+void keyboardReadTask(void *pvParameters) {
+    while(1) {
+        keyboardController.readCharAndWriteToBuffer();
+        delay(100);
+    }
+}
+
+void setup() {
+    boardController.begin();
+    //initialize peripherals
+    setupFrames(&displayController, &keyboardController, &loraWanController);
+    displayController.begin();
+
+    loraSemaphore = xSemaphoreCreateBinary();
+
+    //initialize tasks
+    xTaskCreate(
+        initializeTask,
+        "initializeTask",
+        2048,
+        NULL,
+        1,
+        setupTaskHandle);
+
+    xTaskCreate(
+        loraStateTask,
+        "loraStateTask",
+        2048,
+        NULL,
+        1,
+        loraTaskHandle);
+
+    xTaskCreate(
+        keyboardReadTask,
+        "keyboardReadTask",
+        2048,
+        NULL,
+        1,
+        keyboardTaskHandle);
+
+    xSemaphoreGive(loraSemaphore);
 
 
 }
 
 void loop() {
-    auto state = loraWanController.loRaWANStateMachine();
 
-    if (state == DEVICE_STATE_JOIN) {
-        displayController.println("LoRAWan Joining...");
-        return;
+    //UI Update -- don't change this
+    int remainingTimeBudget = displayController.updateUI();
+
+    if (remainingTimeBudget > 0) {
+        // You can do some work here
+        // Don't do stuff if you are below your
+        // time budget.
+        delay(remainingTimeBudget);
     }
 
-    if (state == DEVICE_STATE_SEND && !isLoRaJoined) {
-        displayController.println("Joined network!!!");
-        displayController.println("Initializing UI...");
-        isLoRaJoined = true;
-        delay(1000);
-        generateMessageScreen();
-        return;
-    }
-
-    char c = keyboardController.readKey();
-    if (c != 0) {
-        displayController.printCharSequence(c);
-    }
 }
